@@ -93,55 +93,65 @@ Thus, using the IniFileRegexParser class allows you to efficiently and flexibly 
 
 Here are some examples of using the IniFile class:
 
-#### Opening a file with parameters
+#### Opening a file
 ```csharp
+// Here is an example of loading a file with parsing options that were explicitly specified:
 IniFile ini = IniFile.Load("config.ini", Encoding.UTF8, StringComparison.InvariantCultureIgnoreCase, true);
+
+// All the above parameter values ​​after the file name
+// are passed in the form they are implied by default,
+// So you can write the same in a shorter way:
+ini = IniFile.Load("config.ini");
 ```
-#### Reading a parameter into a string variable:
+#### Reading a parameter into a string variable
 ```csharp
 string value = ini.ReadString("Section1", "Key1", "default value");
+
+// If you want to receive a key without a section, pass in a null or empty string as the section name:
+value = ini.ReadString("", "Key0", "default value");
+// - or -
+value = ini.ReadString(null, "Key0", "default value");
 ```
-#### Reading a parameter into an integer variable:
+#### Reading a parameter into an integer variable
 ```csharp
 int intValue = ini.ReadInt32("Section1", "IntKey", 42);
-```
-#### Reading various types of objects:
-```csharp
-// In this example, we use the ReadObject method of the IniFile class to read the value of the
-// Uri parameter from the Settings section. We pass the CultureInfo type as the desired type,
-// the default value CultureInfo.InvariantCulture,
-// and an instance of CultureInfoTypeConverter as the type converter.
-CultureInfo culture1 = (CultureInfo)ini.ReadObject("Settings", "Culture", typeof(CultureInfo),
-                        CultureInfo.InvariantCulture, new CultureInfoTypeConverter());
-
-// In this example, we use a generic method Read without using an optional parameter.
-CultureInfo culture2 = ini.Read<CultureInfo>("Settings", "Culture");
-```
-#### Writing using the indexer:
-```csharp
-ini["Section1", "Key1"] = "new value";
 ```
 #### Reading an array of strings into a new variable:
 ```csharp
 string[] values ​​= ini.ReadStrings("Section1", "ArrayKey", "default1", "default2");
 ```
-#### Reading using an indexer:
+#### Reading using an indexer
 ```csharp
-string sectionValue = ini["Section1", "Key1", "default"];
+string value = ini["Section1", "Key1", "default"];
 ```
-#### Writing a string:
+#### Reading various types of objects
 ```csharp
-ini.WriteString("Section1", "Key1", "new value");
+// In this example, we use the ReadObject method of the IniFile class to read the value of the
+// CultureInfo parameter from the Settings section. We pass the CultureInfo type as the desired type,
+// the default value CultureInfo.InvariantCulture, and an instance of CultureInfoTypeConverter as the type converter.
+CultureInfo culture1 = (CultureInfo)ini.ReadObject("Settings", "Culture", typeof(CultureInfo),
+                        CultureInfo.InvariantCulture, new CultureInfoTypeConverter());
+
+// In this example, we use a generic method Read without using an optional parameter.
+Uri uri = ini.Read<Uri>("Settings", "Culture");
 ```
-#### Writing an array of strings:
-```csharp
-ini.WriteStrings("Section1", "ArrayKey", "value1", "value2", "value3");
-```
-#### Writing using an indexer:
+#### Writing using the indexer
 ```csharp
 ini["Section1", "Key1"] = "new value";
 ```
-#### Saving a file:
+#### Writing a string
+```csharp
+ini.WriteString("Section1", "Key1", "new value");
+```
+#### Writing an array of strings
+```csharp
+ini.WriteStrings("Section1", "ArrayKey", "value1", "value2", "value3");
+```
+#### Writing using an indexer
+```csharp
+ini["Section1", "Key1"] = "new value";
+```
+#### Saving a file
 ```csharp
 ini.Save("config.ini");
 ```
