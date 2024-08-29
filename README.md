@@ -2,7 +2,7 @@
 
 
 # INI File Parser
-A regular expression-based, collection-free INI file parser that preserves the original file formatting when editing entries.  
+Represents a parser that uses regular expressions and doesn't use any collections. It can parse different formats of the configuration file (also called as the INI file) and keeps the original file formatting when you edit entries.  
 
 ## Introduction
 
@@ -14,6 +14,42 @@ Parsing INI files is a fairly common task in programming when working with confi
 
 In this article, I plan to talk about parsing INI files using regular expressions in C#. This is an interesting and powerful approach that allows you to customize the processing logic as much as possible for your needs. Regular expressions provide greater flexibility in parsing file structure, but require a deeper understanding of regular expression syntax. This article will certainly be useful to readers who need customized INI file processing. This approach allows you to preserve the original file formatting, modify existing entries, and add new ones without using collections.
 Thus, using regular expressions to parse INI files provides high performance, flexibility, preservation of original formatting and ease of use, which makes this approach an effective solution for working with configuration data in the INI format.
+
+## INI file format
+
+```
+# Here is an example of system.ini file
+[drivers]
+wave=mmdrv.dll
+timer=timer.drv
+```
+
+This format is quite simple and has long been known to most developers. In general, it is a list of key-value pairs separated by an equal sign, called parameters. For convenience, parameters are grouped into sections, which are enclosed by square brackets. However, despite this, there are still a number of nuances and small differences, since a single standard is not strictly defined. If I create a new parser, my goal is to make it universal, so that it extracts information as efficiently as possible, so when writing a universal parser for working with INI files, these features must be taken into account.
+
+For example, different symbols can be used to indicate comments, the most common options are a hash or a semicolon, as well as various separators between the key and value. In addition to the usual equal sign, a colon is sometimes used in such cases. There are also files in which there are no sections, only key-value pairs. Different systems may use different characters to terminate a line. It is not strongly defined whether the keys "Key" and "key" should be considered different or treated as the same, regardless of case. The file may contain undefined or erroneous data, which, however, should not prevent the correct parsing of valid content.
+
+There is also no consensus on storing arrays of strings. Some standards allow multiple keys with the same name, others - the use of escaped characters to separate strings within the parameter value. Although most often the parser extracts the single value that found first. Our parser can handle all these tasks equally well.
+
+```
+;Here is an example of different configuration file standards
+key=value ; The key without section
+
+[Section1]
+Number1=1
+Number2=2
+
+[Section2] ; Indented section
+ NumberPI     = 3.14 
+ SingleString = Hello, world! ; Comment after value or solid string?
+ MultiString  = "ABCDE This is my family\r\nGHIJ I love them every day"
+ ArrayString  = "ABCDE This is my family"
+ ArrayString  = "GHIJ I love them every day"
+
+[Section3] # Another formatting style
+encoding: UTF-8
+culture:  en-US
+url:      https://www.site.com
+```
 
 ## Regular expression
 
