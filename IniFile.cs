@@ -57,6 +57,9 @@ using System.Reflection;
 
 namespace System.Ini
 {
+    /// <summary>
+    /// Represents a regular expression-based, collection-free INI file parser that preserves the original file formatting when editing entries.
+    /// </summary>
     public sealed class IniFile
     {
         // Private field for storing the content of the INI file.
@@ -122,6 +125,18 @@ namespace System.Ini
         }
 
         /// <summary>
+        /// Create a new instance of <see cref="IniFile"/> with empty content.
+        /// </summary>
+        /// <param name="comparison">Specifies the rules for string comparison.</param>
+        /// <param name="allowEscChars">Indicates whether escape characters are allowed in the INI file.</param>
+        /// <returns>An instance of <see cref="IniFile"/> initialized with the specified settings.</returns>
+        public static IniFile Create(StringComparison comparison = StringComparison.InvariantCultureIgnoreCase,
+            bool allowEscChars = false)
+        {
+            return new IniFile(string.Empty, comparison, allowEscChars);
+        }
+
+        /// <summary>
         /// Loads an INI file using a <see cref="TextReader"/> and initializes an instance of <see cref="IniFile"/>.
         /// </summary>
         /// <param name="reader">The <see cref="TextReader"/> containing the INI file data.</param>
@@ -164,7 +179,30 @@ namespace System.Ini
             StringComparison comparison = StringComparison.InvariantCultureIgnoreCase, 
             bool allowEscChars = false)
         {
-            return new IniFile(File.ReadAllText(GetFullPath(fileName), encoding ?? Encoding.UTF8),
+            var filePath = GetFullPath(fileName, true);
+            return new IniFile(File.ReadAllText(filePath, encoding ?? AutoDetectEcoding(filePath, Encoding.UTF8)),
+                comparison, allowEscChars);
+        }
+
+        /// <summary>
+        /// Loads an INI file using a <see cref="TextReader"/> or create it with empty content
+        /// and initializes an instance of <see cref="IniFile"/>.
+        /// </summary>
+        /// <param name="fileName">The path to the file containing the INI data.</param>
+        /// <param name="encoding">The <see cref="Encoding"/> used to read the file.</param>
+        /// <param name="comparison">Specifies the rules for string comparison.</param>
+        /// <param name="allowEscChars">Indicates whether escape characters are allowed in the INI file.</param>
+        /// <returns>An instance of <see cref="IniFile"/> initialized with the specified settings.</returns>
+        public static IniFile LoadOrCreate(string fileName, Encoding encoding = null,
+            StringComparison comparison = StringComparison.InvariantCultureIgnoreCase,
+            bool allowEscChars = false)
+        {
+            string filePath = GetFullPath(fileName);
+
+            return new IniFile(
+                File.Exists(filePath)
+                    ? File.ReadAllText(filePath, encoding ?? AutoDetectEcoding(filePath, Encoding.UTF8))
+                    : string.Empty,
                 comparison, allowEscChars);
         }
 
@@ -795,6 +833,28 @@ namespace System.Ini
             return n ? r ? "\r\n" : "\n" : r ? "\r" : Environment.NewLine;
         }
 
+        private static Encoding AutoDetectEcoding(string fileName, Encoding defaultEncoding = null)
+        {
+            byte[] buffer = new byte[4];
+
+            using (FileStream fs = File.OpenRead(fileName))
+            {
+                if (fs.Length > 3)
+                    fs.Read(buffer, 0, 4);
+
+                // Check for BOM (Byte Order Mark)
+                if (buffer[0] == 0x2b && buffer[1] == 0x2f && buffer[2] == 0x76) return Encoding.UTF7;
+                if (buffer[0] == 0xef && buffer[1] == 0xbb && buffer[2] == 0xbf) return Encoding.UTF8;
+                if (buffer[0] == 0xff && buffer[1] == 0xfe) return Encoding.Unicode; // UTF-16LE
+                if (buffer[0] == 0xfe && buffer[1] == 0xff) return Encoding.BigEndianUnicode; // UTF-16BE
+                if (buffer[0] == 0 && buffer[1] == 0 && buffer[2] == 0xfe && buffer[3] == 0xff) return Encoding.UTF32;
+            }
+
+            // Default fallback.
+            return defaultEncoding ?? Encoding.Default;
+        }
+    
+
         // Converts a string to lowercase based on the specified.
         private static string MayBeToLower(string text, StringComparison comparison)
         {
@@ -843,7 +903,7 @@ namespace System.Ini
         // Validates
         private static string GetFullPath(string fileName, bool checkExists = false)
         {
-            if (ValidateFileName(fileName) is Exception exception)
+            if (ValidateFileName(fileName, checkExists) is Exception exception)
                 throw exception;
 
             return Path.GetFullPath(fileName);
