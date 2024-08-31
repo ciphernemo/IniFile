@@ -127,9 +127,15 @@ namespace System.Ini
         /// <summary>
         /// Create a new instance of <see cref="IniFile"/> with empty content.
         /// </summary>
-        /// <param name="comparison">Specifies the rules for string comparison.</param>
-        /// <param name="allowEscChars">Indicates whether escape characters are allowed in the INI file.</param>
-        /// <returns>An instance of <see cref="IniFile"/> initialized with the specified settings.</returns>
+        /// <param name="comparison">
+        /// Specifies the rules for string comparison.
+        /// </param>
+        /// <param name="allowEscChars">
+        /// Indicates whether escape characters are allowed in the INI file.
+        /// </param>
+        /// <returns>
+        /// An instance of <see cref="IniFile"/> initialized with the specified settings.
+        /// </returns>
         public static IniFile Create(StringComparison comparison = StringComparison.InvariantCultureIgnoreCase,
             bool allowEscChars = false)
         {
@@ -139,10 +145,18 @@ namespace System.Ini
         /// <summary>
         /// Loads an INI file using a <see cref="TextReader"/> and initializes an instance of <see cref="IniFile"/>.
         /// </summary>
-        /// <param name="reader">The <see cref="TextReader"/> containing the INI file data.</param>
-        /// <param name="comparison">Specifies the rules for string comparison.</param>
-        /// <param name="allowEscChars">Indicates whether escape characters are allowed in the INI file.</param>
-        /// <returns>An instance of <see cref="IniFile"/> initialized with the specified data and settings.</returns>
+        /// <param name="reader">
+        /// The <see cref="TextReader"/> containing the INI file data.
+        /// </param>
+        /// <param name="comparison">
+        /// Specifies the rules for string comparison.
+        /// </param>
+        /// <param name="allowEscChars">
+        /// Indicates whether escape characters are allowed in the INI file.
+        /// </param>
+        /// <returns>
+        /// An instance of <see cref="IniFile"/> initialized with the specified data and settings.
+        /// </returns>
         public static IniFile Load(TextReader reader,
             StringComparison comparison = StringComparison.InvariantCultureIgnoreCase,
             bool allowEscChars = false)
@@ -153,11 +167,21 @@ namespace System.Ini
         /// <summary>
         /// Loads an INI file from a <see cref="Stream"/> using the specified encoding and initializes an instance of <see cref="IniFile"/>.
         /// </summary>
-        /// <param name="stream">The <see cref="Stream"/> containing the INI file data.</param>
-        /// <param name="encoding">The <see cref="Encoding"/> used to read the stream.</param>
-        /// <param name="comparison">Specifies the rules for string comparison.</param>
-        /// <param name="allowEscChars">Indicates whether escape characters are allowed in the INI file.</param>
-        /// <returns>An instance of <see cref="IniFile"/> initialized with the specified data and settings.</returns>
+        /// <param name="stream">
+        /// The <see cref="Stream"/> containing the INI file data.
+        /// </param>
+        /// <param name="encoding">
+        /// The <see cref="Encoding"/> used to read the stream.
+        /// </param>
+        /// <param name="comparison">
+        /// Specifies the rules for string comparison.
+        /// </param>
+        /// <param name="allowEscChars">
+        /// Indicates whether escape characters are allowed in the INI file.
+        /// </param>
+        /// <returns>
+        /// An instance of <see cref="IniFile"/> initialized with the specified data and settings.
+        /// </returns>
         public static IniFile Load(Stream stream, Encoding encoding = null, 
             StringComparison comparison = StringComparison.InvariantCultureIgnoreCase, 
             bool allowEscChars = false)
@@ -169,18 +193,53 @@ namespace System.Ini
         /// <summary>
         /// Loads an INI file from a file specified by its path using the specified encoding and initializes an instance of <see cref="IniFile"/>.
         /// </summary>
-        /// <param name="fileName">The path to the file containing the INI data.</param>
-        /// <param name="encoding">The <see cref="Encoding"/> used to read the file.</param>
-        /// <param name="comparison">Specifies the rules for string comparison.</param>
-        /// <param name="allowEscChars">Indicates whether escape characters are allowed in the INI file.</param>
-        /// <returns>An instance of <see cref="IniFile"/> initialized with the specified data and settings.</returns>
+        /// <param name="fileName">
+        /// The path to the file containing the INI data.
+        /// </param>
+        /// <param name="encoding">
+        /// The <see cref="Encoding"/> used to read the file.
+        /// </param>
+        /// <param name="comparison">
+        /// Specifies the rules for string comparison.
+        /// </param>
+        /// <param name="allowEscChars">
+        /// Indicates whether escape characters are allowed in the INI file.
+        /// </param>
+        /// <returns>
+        /// An instance of <see cref="IniFile"/> initialized with the specified data and settings.
+        /// </returns>
         public static IniFile Load(string fileName, 
-            Encoding encoding = null,
+            Encoding encoding,
             StringComparison comparison = StringComparison.InvariantCultureIgnoreCase, 
             bool allowEscChars = false)
         {
-            var filePath = GetFullPath(fileName, true);
-            return new IniFile(File.ReadAllText(filePath, encoding ?? AutoDetectEcoding(filePath, Encoding.UTF8)),
+            string filePath = GetFullPath(fileName, true);
+            return new IniFile(File.ReadAllText(filePath, encoding ?? AutoDetectEncoding(filePath, Encoding.UTF8)),
+                comparison, allowEscChars);
+        }
+
+        /// <summary>
+        /// Loads an INI file from a file specified by its path using the specified encoding and initializes an instance of <see cref="IniFile"/>.
+        /// </summary>
+        /// <param name="fileName">
+        /// The path to the file containing the INI data.
+        /// </param>
+        /// <param name="comparison">
+        /// Specifies the rules for string comparison.
+        /// </param>
+        /// <param name="allowEscChars">
+        /// Indicates whether escape characters are allowed in the INI file.
+        /// </param>
+        /// <returns>
+        /// An instance of <see cref="IniFile"/> initialized with the specified data and settings.
+        /// </returns>
+        public static IniFile Load(string fileName,
+            StringComparison comparison = StringComparison.InvariantCultureIgnoreCase, 
+            bool allowEscChars = false)
+        {
+            string filePath = GetFullPath(fileName, true);
+
+            return new IniFile(File.ReadAllText(filePath, AutoDetectEncoding(filePath, Encoding.UTF8)),
                 comparison, allowEscChars);
         }
 
@@ -188,12 +247,21 @@ namespace System.Ini
         /// Loads an INI file using a <see cref="TextReader"/> or create it with empty content
         /// and initializes an instance of <see cref="IniFile"/>.
         /// </summary>
-        /// <param name="fileName">The path to the file containing the INI data.</param>
-        /// <param name="encoding">The <see cref="Encoding"/> used to read the file.</param>
-        /// <param name="comparison">Specifies the rules for string comparison.</param>
-        /// <param name="allowEscChars">Indicates whether escape characters are allowed in the INI file.</param>
-        /// <returns>An instance of <see cref="IniFile"/> initialized with the specified settings.</returns>
-        public static IniFile LoadOrCreate(string fileName, Encoding encoding = null,
+        /// <param name="fileName">
+        /// The path to the file containing the INI data.
+        /// </param>
+        /// <param name="encoding">
+        /// The <see cref="Encoding"/> used to read the file.
+        /// </param>
+        /// <param name="comparison">
+        /// Specifies the rules for string comparison.</param>
+        /// <param name="allowEscChars">
+        /// Indicates whether escape characters are allowed in the INI file.
+        /// </param>
+        /// <returns>
+        /// An instance of <see cref="IniFile"/> initialized with the specified settings.
+        /// </returns>
+        public static IniFile LoadOrCreate(string fileName, Encoding encoding,
             StringComparison comparison = StringComparison.InvariantCultureIgnoreCase,
             bool allowEscChars = false)
         {
@@ -201,7 +269,35 @@ namespace System.Ini
 
             return new IniFile(
                 File.Exists(filePath)
-                    ? File.ReadAllText(filePath, encoding ?? AutoDetectEcoding(filePath, Encoding.UTF8))
+                    ? File.ReadAllText(filePath, encoding ?? AutoDetectEncoding(filePath, Encoding.UTF8))
+                    : string.Empty,
+                comparison, allowEscChars);
+        }
+
+        /// <summary>
+        /// Loads an INI file using a <see cref="TextReader"/> or create it with empty content
+        /// and initializes an instance of <see cref="IniFile"/>.
+        /// </summary>
+        /// <param name="fileName">
+        /// The path to the file containing the INI data.
+        /// </param>
+        /// <param name="comparison">
+        /// Specifies the rules for string comparison.</param>
+        /// <param name="allowEscChars">
+        /// Indicates whether escape characters are allowed in the INI file.
+        /// </param>
+        /// <returns>
+        /// An instance of <see cref="IniFile"/> initialized with the specified settings.
+        /// </returns>
+        public static IniFile LoadOrCreate(string fileName,
+            StringComparison comparison = StringComparison.InvariantCultureIgnoreCase,
+            bool allowEscChars = false)
+        {
+            string filePath = GetFullPath(fileName);
+
+            return new IniFile(
+                File.Exists(filePath)
+                    ? File.ReadAllText(filePath, AutoDetectEncoding(filePath, Encoding.UTF8))
                     : string.Empty,
                 comparison, allowEscChars);
         }
@@ -218,8 +314,12 @@ namespace System.Ini
         /// <summary>
         /// Saves the INI file content to a <see cref="Stream"/> using the specified encoding.
         /// </summary>
-        /// <param name="stream">The <see cref="Stream"/> where the INI file data will be written.</param>
-        /// <param name="encoding">The <see cref="Encoding"/> used to write the data to the stream.</param>
+        /// <param name="stream">
+        /// The <see cref="Stream"/> where the INI file data will be written.
+        /// </param>
+        /// <param name="encoding">
+        /// The <see cref="Encoding"/> used to write the data to the stream.
+        /// </param>
         public void Save(Stream stream, Encoding encoding = null)
         {
             using (StreamWriter writer = new StreamWriter(stream, encoding ?? Encoding.UTF8))
@@ -231,8 +331,12 @@ namespace System.Ini
         /// <summary>
         /// Saves the INI file content to a file specified by its path using the specified encoding.
         /// </summary>
-        /// <param name="fileName">The path to the file where the INI data will be saved.</param>
-        /// <param name="encoding">The <see cref="Encoding"/> used to write the file.</param>
+        /// <param name="fileName">
+        /// The path to the file where the INI data will be saved.
+        /// </param>
+        /// <param name="encoding">
+        /// The <see cref="Encoding"/> used to write the file.
+        /// </param>
         public void Save(string fileName, Encoding encoding = null)
         {
             string fullPath = GetFullPath(fileName);
@@ -810,7 +914,7 @@ namespace System.Ini
             return sb;
         }
 
-        // This method uses boolean flags to determine if either \r (carriage return) or \n (line feed) characters are present.
+        // Tries to determine if either \r (carriage return) or \n (line feed) characters are present.
         // It stops iterating as soon as it finds both characters.
         private static string AutoDetectLineBreaker(string text)
         {
@@ -833,21 +937,27 @@ namespace System.Ini
             return n ? r ? "\r\n" : "\n" : r ? "\r" : Environment.NewLine;
         }
 
-        private static Encoding AutoDetectEcoding(string fileName, Encoding defaultEncoding = null)
+        // Tries to determine the encoding, checking the presence of signature (BOM) for some popular encodings.
+        private static Encoding AutoDetectEncoding(string fileName, Encoding defaultEncoding = null)
         {
-            byte[] buffer = new byte[4];
+            byte[] bom = new byte[4];
 
             using (FileStream fs = File.OpenRead(fileName))
             {
-                if (fs.Length > 3)
-                    fs.Read(buffer, 0, 4);
+                int count = fs.Read(bom, 0, 4);
 
                 // Check for BOM (Byte Order Mark)
-                if (buffer[0] == 0x2b && buffer[1] == 0x2f && buffer[2] == 0x76) return Encoding.UTF7;
-                if (buffer[0] == 0xef && buffer[1] == 0xbb && buffer[2] == 0xbf) return Encoding.UTF8;
-                if (buffer[0] == 0xff && buffer[1] == 0xfe) return Encoding.Unicode; // UTF-16LE
-                if (buffer[0] == 0xfe && buffer[1] == 0xff) return Encoding.BigEndianUnicode; // UTF-16BE
-                if (buffer[0] == 0 && buffer[1] == 0 && buffer[2] == 0xfe && buffer[3] == 0xff) return Encoding.UTF32;
+                if (count > 2)
+                {
+                    if (bom[0] == 0x2b && bom[1] == 0x2f && bom[2] == 0x76) return Encoding.UTF7;
+                    if (bom[0] == 0xef && bom[1] == 0xbb && bom[2] == 0xbf) return Encoding.UTF8;
+                    if (bom[0] == 0 && bom[1] == 0 && bom[2] == 0xfe && bom[3] == 0xff) return Encoding.UTF32;
+                }
+                else if (count > 1)
+                {
+                    if (bom[0] == 0xff && bom[1] == 0xfe) return Encoding.Unicode; // UTF-16LE
+                    if (bom[0] == 0xfe && bom[1] == 0xff) return Encoding.BigEndianUnicode; // UTF-16BE
+                }
             }
 
             // Default fallback.
