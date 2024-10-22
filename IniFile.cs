@@ -11,47 +11,44 @@
        - parsing INI files;
        - getting sections, keys and values by sections and keys;
        - setting values;
-	   - automatically initializes properties.
+       - automatically initializes properties.
 
     To  use the class, you  must  pass  it  a  string  or stream
     containing the ini file data and some parsing settings.
 
 •   License
 
-	This software is distributed under the MIT License (MIT)
+    This software is distributed under the MIT License (MIT)
 
     © 2024 Pavel Bashkardin.
 
     Permission is  hereby granted, free of charge, to any person
-	obtaining   a copy    of    this  software    and associated
-	documentation  files  (the “Software”),    to  deal   in the
-	Software without  restriction, including without  limitation
-	the rights to use, copy, modify, merge, publish, distribute,
-	sublicense,  and/or  sell  copies   of  the Software, and to
-	permit persons to whom the Software  is furnished to  do so,
-	subject to the following conditions:
+    obtaining   a copy    of    this  software    and associated
+    documentation  files  (the “Software”),    to  deal   in the
+    Software without  restriction, including without  limitation
+    the rights to use, copy, modify, merge, publish, distribute,
+    sublicense,  and/or  sell  copies   of  the Software, and to
+    permit persons to whom the Software  is furnished to  do so,
+    subject to the following conditions:
 
-	The above copyright  notice and this permission notice shall
-	be  included  in all copies   or substantial portions of the
-	Software.
+    The above copyright  notice and this permission notice shall
+    be  included  in all copies   or substantial portions of the
+    Software.
 
-	THE  SOFTWARE IS  PROVIDED  “AS IS”, WITHOUT WARRANTY OF ANY
-	KIND, EXPRESS  OR IMPLIED, INCLUDING  BUT NOT LIMITED TO THE
-	WARRANTIES  OF MERCHANTABILITY, FITNESS    FOR A  PARTICULAR
-	PURPOSE AND NONINFRINGEMENT. IN  NO EVENT SHALL  THE AUTHORS
-	OR  COPYRIGHT HOLDERS  BE  LIABLE FOR ANY CLAIM,  DAMAGES OR
-	OTHER LIABILITY,  WHETHER IN AN  ACTION OF CONTRACT, TORT OR
-	OTHERWISE, ARISING FROM, OUT OF   OR IN CONNECTION  WITH THE
-	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    THE  SOFTWARE IS  PROVIDED  “AS IS”, WITHOUT WARRANTY OF ANY
+    KIND, EXPRESS  OR IMPLIED, INCLUDING  BUT NOT LIMITED TO THE
+    WARRANTIES  OF MERCHANTABILITY, FITNESS    FOR A  PARTICULAR
+    PURPOSE AND NONINFRINGEMENT. IN  NO EVENT SHALL  THE AUTHORS
+    OR  COPYRIGHT HOLDERS  BE  LIABLE FOR ANY CLAIM,  DAMAGES OR
+    OTHER LIABILITY,  WHETHER IN AN  ACTION OF CONTRACT, TORT OR
+    OTHERWISE, ARISING FROM, OUT OF   OR IN CONNECTION  WITH THE
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ***************************************************************/
 
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.ComponentModel;
 using System.Reflection;
 
@@ -60,25 +57,35 @@ namespace System.Ini
     /// <summary>
     /// Represents a regular expression-based, collection-free INI file parser that preserves the original file formatting when editing entries.
     /// </summary>
+    [Serializable]
     public sealed class IniFile
     {
         // Private field for storing the content of the INI file.
         private string _content;
 
+        // Cache of found matches, which improves performance.
+        [NonSerialized]
+        private List<Match> _matches;
+
         // Regular expression used for parsing the INI file.
+        [NonSerialized]
         private readonly Regex _regex;
 
         // Indicates whether escape characters are allowed in the INI file.
-        private readonly bool _allowEscapeChars;
+        [NonSerialized]
+        private readonly bool _allowEscapeChars = false;
 
         // String used to represent line breaks in the INI file.
+        [NonSerialized]
         private readonly string _lineBreaker = Environment.NewLine;
 
         // Contains culture-specific information for parsing.
-        private readonly CultureInfo _culture;
+        [NonSerialized]
+        private readonly CultureInfo _culture = CultureInfo.InvariantCulture;
 
         // Determines how string comparisons are performed in the INI file.
         // Configured based on settings passed to the constructor.
+        [NonSerialized]
         private readonly StringComparison _comparison = StringComparison.InvariantCultureIgnoreCase;
 
         /// <summary>
@@ -93,7 +100,15 @@ namespace System.Ini
             set
             {
                 _content = value ?? (_content = string.Empty);
+                _matches.Clear();
 
+                // Iterate over matches using the regex pattern and collect sections and entries names.
+                for (Match match = _regex.Match(_content); match.Success; match = match.NextMatch())
+                {
+                    GroupCollection groups = match.Groups;
+                    if (groups["section"].Success || groups["entry"].Success)
+                        _matches.Add(match);
+                }
             }
         }
 
@@ -105,23 +120,24 @@ namespace System.Ini
         // Initializes the parser settings, setting the comparison rules,
         // regular expression pattern, escape character allowance, and delimiter
         // based on the provided settings.
-        private IniFile(string content, 
-            StringComparison comparison = StringComparison.InvariantCultureIgnoreCase, 
+        private IniFile(string content,
+            StringComparison comparison = StringComparison.InvariantCultureIgnoreCase,
             bool allowEscChars = false)
         {
             if (content == null) content = string.Empty;
             _comparison = comparison;
-            _content = content;
             _regex = new Regex(@"(?=\S)(?<text>(?<comment>(?<open>[#;]+)(?:[^\S\r\n]*)(?<value>.+))|" +
                                @"(?<section>(?<open>\[)(?:\s*)(?<value>[^\]]*\S+)(?:[^\S\r\n]*)(?<close>\]))|" +
                                @"(?<entry>(?<key>[^=\r\n\[\]]*\S)(?:[^\S\r\n]*)(?<delimiter>:|=)(?:[^\S\r\n]*)(?<value>[^#;\r\n]*))|" +
                                @"(?<undefined>.+))(?<=\S)|" +
                                @"(?<linebreaker>\r\n|\n)|" +
-                               @"(?<whitespace>[^\S\r\n]+)", 
+                               @"(?<whitespace>[^\S\r\n]+)",
                 GetRegexOptions(comparison, RegexOptions.Compiled));
             _culture = GetCultureInfo(_comparison);
             _allowEscapeChars = allowEscChars;
-            _lineBreaker = AutoDetectLineBreaker(_content);
+            _lineBreaker = AutoDetectLineBreaker(content);
+            _matches = new List<Match>(16);
+            Content = content;
         }
 
         /// <summary>
@@ -182,8 +198,8 @@ namespace System.Ini
         /// <returns>
         /// An instance of <see cref="IniFile"/> initialized with the specified data and settings.
         /// </returns>
-        public static IniFile Load(Stream stream, Encoding encoding = null, 
-            StringComparison comparison = StringComparison.InvariantCultureIgnoreCase, 
+        public static IniFile Load(Stream stream, Encoding encoding = null,
+            StringComparison comparison = StringComparison.InvariantCultureIgnoreCase,
             bool allowEscChars = false)
         {
             using (StreamReader reader = new StreamReader(stream ?? throw new ArgumentNullException(nameof(stream)), encoding ?? Encoding.UTF8))
@@ -208,9 +224,9 @@ namespace System.Ini
         /// <returns>
         /// An instance of <see cref="IniFile"/> initialized with the specified data and settings.
         /// </returns>
-        public static IniFile Load(string fileName, 
+        public static IniFile Load(string fileName,
             Encoding encoding,
-            StringComparison comparison = StringComparison.InvariantCultureIgnoreCase, 
+            StringComparison comparison = StringComparison.InvariantCultureIgnoreCase,
             bool allowEscChars = false)
         {
             string filePath = GetFullPath(fileName, true);
@@ -234,7 +250,7 @@ namespace System.Ini
         /// An instance of <see cref="IniFile"/> initialized with the specified data and settings.
         /// </returns>
         public static IniFile Load(string fileName,
-            StringComparison comparison = StringComparison.InvariantCultureIgnoreCase, 
+            StringComparison comparison = StringComparison.InvariantCultureIgnoreCase,
             bool allowEscChars = false)
         {
             string filePath = GetFullPath(fileName, true);
@@ -349,8 +365,11 @@ namespace System.Ini
             HashSet<string> sections = new HashSet<string>(GetComparer(_comparison));
 
             // Iterate over matches using the regex pattern and collect section names.
-            for (Match match = _regex.Match(Content); match.Success; match = match.NextMatch())
+            //foreach (Match match in _matches)
+            for (int i = 0; i < _matches.Count; i++)
             {
+                Match match = _matches[i];
+
                 if (match.Groups["section"].Success)
                 {
                     // Convert to lowercase if ignore case mode is enabled.
@@ -370,8 +389,10 @@ namespace System.Ini
             bool inSection = emptySection;
 
             // Iterate through the content to find keys within the specified section.
-            for (Match match = _regex.Match(Content); match.Success; match = match.NextMatch())
+            for (int i = 0; i < _matches.Count; i++)
             {
+                Match match = _matches[i];
+
                 // If the section name is not specified, then the parameters without a section,
                 // which are located above the first section, are used.
                 if (match.Groups["section"].Success)
@@ -399,8 +420,10 @@ namespace System.Ini
             bool inSection = emptySection;
 
             // Search for the section and key, and return the corresponding value.
-            for (Match match = _regex.Match(Content); match.Success; match = match.NextMatch())
+            for (int i = 0; i < _matches.Count; i++)
             {
+                Match match = _matches[i];
+
                 if (match.Groups["section"].Success)
                 {
                     inSection = match.Groups["value"].Value.Equals(section, _comparison);
@@ -431,8 +454,10 @@ namespace System.Ini
             bool inSection = emptySection;
 
             // Collect all values within the specified section.
-            for (Match match = _regex.Match(Content); match.Success; match = match.NextMatch())
+            for (int i = 0; i < _matches.Count; i++)
             {
+                Match match = _matches[i];
+
                 if (match.Groups["section"].Success)
                 {
                     inSection = match.Groups["value"].Value.Equals(section, _comparison);
@@ -462,8 +487,10 @@ namespace System.Ini
             bool inSection = emptySection;
 
             // Collect all values corresponding to the key in the section.
-            for (Match match = _regex.Match(Content); match.Success; match = match.NextMatch())
+            for (int i = 0; i < _matches.Count; i++)
             {
+                Match match = _matches[i];
+
                 if (match.Groups["section"].Success)
                 {
                     inSection = match.Groups["value"].Value.Equals(section, _comparison);
@@ -499,8 +526,10 @@ namespace System.Ini
             if (_allowEscapeChars && expectedValue) value = ToEscape(value);
 
             // Iterate over the content to find the section and key, and set the value
-            for (Match match = _regex.Match(Content); match.Success; match = match.NextMatch())
+            for (int i = 0; i < _matches.Count; i++)
             {
+                Match match = _matches[i];
+
                 if (match.Groups["section"].Success)
                 {
                     inSection = match.Groups["value"].Value.Equals(section, _comparison);
@@ -579,8 +608,10 @@ namespace System.Ini
 
 
             // Iterate over the ini content and process each match for section and entry
-            for (Match match = _regex.Match(Content); valueIndex < values.Length && match.Success; match = match.NextMatch())
+            for (int i = 0; valueIndex < values.Length && i < _matches.Count; i++)
             {
+                Match match = _matches[i];
+
                 if (match.Groups["section"].Success)  // Check if the current match is a section.
                 {
                     // Set the inSection flag based on whether the section matches the target section.
@@ -625,13 +656,13 @@ namespace System.Ini
                 int index = 0;
 
                 // If a previous match was found, insert after the last entry.
-                if (lastMatch != null)  
+                if (lastMatch != null)
                 {
                     index = lastMatch.Index + lastMatch.Length;
                 }
 
                 // If no match was found, append a new section header if necessary.
-                else if (!emptySection)  
+                else if (!emptySection)
                 {
                     sb.Append(_lineBreaker);
                     sb.Append($"[{section}]{_lineBreaker}");
@@ -921,8 +952,8 @@ namespace System.Ini
             if (string.IsNullOrEmpty(text)) return Environment.NewLine;
 
             bool r = false, n = false;
-			
-			// Searching for cr and lf characters.
+
+            // Searching for cr and lf characters.
             for (int index = 0; index < text.Length; index++)
             {
                 char c = text[index];
@@ -963,7 +994,7 @@ namespace System.Ini
             // Default fallback.
             return defaultEncoding ?? Encoding.Default;
         }
-    
+
 
         // Converts a string to lowercase based on the specified.
         private static string MayBeToLower(string text, StringComparison comparison)
@@ -1151,7 +1182,7 @@ namespace System.Ini
         /// <exception cref="ArgumentNullException">
         /// Thrown when one of the parameters <paramref name="key"/> or <paramref name="type"/> is null.
         /// </exception>
-        public object ReadObject(string section, string key, Type type, 
+        public object ReadObject(string section, string key, Type type,
             object defaultValue = default, TypeConverter converter = null)
         {
             if (key == null)
@@ -1277,6 +1308,20 @@ namespace System.Ini
             if (elementType == null)
                 throw new ArgumentNullException(nameof(elementType));
 
+            // If the element type is char, return the value as char array.
+            if (elementType == typeof(char))
+            {
+                string value = ReadString(section, key, string.Empty);
+                return value.ToCharArray();
+            }
+
+            // If the element type is byte, return the value decoded with base64.
+            if (elementType == typeof(byte))
+            {
+                string value = ReadString(section, key, string.Empty);
+                return Convert.FromBase64String(value);
+            }
+
             // Retrieve the array of string values associated with the given section and key.
             string[] values = ReadStrings(section, key);
 
@@ -1334,7 +1379,7 @@ namespace System.Ini
         /// <exception cref="ArgumentNullException">
         /// Thrown when one of the parameters <paramref name="key"/> or <paramref name="property"/> is null.
         /// </exception>
-        public void ReadProperty(string section, string key, PropertyInfo property, 
+        public void ReadProperty(string section, string key, PropertyInfo property,
             object obj, object defaultValue = null, TypeConverter converter = null)
         {
             if (key == null)
@@ -1609,6 +1654,20 @@ namespace System.Ini
 
             // Determine the type of the elements in the array.
             Type elementType = array.GetType().GetElementType();
+
+            // If the element type is char, write the value as string.
+            if (elementType == typeof(char))
+            {
+                char[] chars = (char[])array;
+                WriteString(section, key, new string(chars));
+            }
+
+            // If the element type is byte, write the value encoded with base64.
+            if (elementType == typeof(byte))
+            {
+                byte[] bytes = (byte[])array;
+                WriteString(section, key, new string(Convert.ToBase64String(bytes, 0, bytes.Length)));
+            }
 
             // Use the provided converter or get the default converter for the element type.
             if (converter == null)
@@ -1922,7 +1981,7 @@ namespace System.Ini
         /// </exception>
         public bool ReadBoolean(string section, string key, bool defaultValue = default)
         {
-            return Read(section, key, defaultValue);
+            return Read(section, key, 0) > 0;
         }
 
         /// <summary>
@@ -1945,7 +2004,7 @@ namespace System.Ini
         /// </exception>
         public char ReadChar(string section, string key, char defaultValue = default)
         {
-            return Read(section, key, defaultValue);
+            return Read(section, key, defaultValue.ToString())[0];
         }
 
         /// <summary>
