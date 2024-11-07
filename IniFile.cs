@@ -11,45 +11,48 @@
        - parsing INI files;
        - getting sections, keys and values by sections and keys;
        - setting values;
-       - automatically initializes properties.
+	   - automatically initializes properties.
 
     To  use the class, you  must  pass  it  a  string  or stream
     containing the ini file data and some parsing settings.
 
 •   License
 
-    This software is distributed under the MIT License (MIT)
+	This software is distributed under the MIT License (MIT)
 
     © 2024 Pavel Bashkardin.
 
     Permission is  hereby granted, free of charge, to any person
-    obtaining   a copy    of    this  software    and associated
-    documentation  files  (the “Software”),    to  deal   in the
-    Software without  restriction, including without  limitation
-    the rights to use, copy, modify, merge, publish, distribute,
-    sublicense,  and/or  sell  copies   of  the Software, and to
-    permit persons to whom the Software  is furnished to  do so,
-    subject to the following conditions:
+	obtaining   a copy    of    this  software    and associated
+	documentation  files  (the “Software”),    to  deal   in the
+	Software without  restriction, including without  limitation
+	the rights to use, copy, modify, merge, publish, distribute,
+	sublicense,  and/or  sell  copies   of  the Software, and to
+	permit persons to whom the Software  is furnished to  do so,
+	subject to the following conditions:
 
-    The above copyright  notice and this permission notice shall
-    be  included  in all copies   or substantial portions of the
-    Software.
+	The above copyright  notice and this permission notice shall
+	be  included  in all copies   or substantial portions of the
+	Software.
 
-    THE  SOFTWARE IS  PROVIDED  “AS IS”, WITHOUT WARRANTY OF ANY
-    KIND, EXPRESS  OR IMPLIED, INCLUDING  BUT NOT LIMITED TO THE
-    WARRANTIES  OF MERCHANTABILITY, FITNESS    FOR A  PARTICULAR
-    PURPOSE AND NONINFRINGEMENT. IN  NO EVENT SHALL  THE AUTHORS
-    OR  COPYRIGHT HOLDERS  BE  LIABLE FOR ANY CLAIM,  DAMAGES OR
-    OTHER LIABILITY,  WHETHER IN AN  ACTION OF CONTRACT, TORT OR
-    OTHERWISE, ARISING FROM, OUT OF   OR IN CONNECTION  WITH THE
-    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+	THE  SOFTWARE IS  PROVIDED  “AS IS”, WITHOUT WARRANTY OF ANY
+	KIND, EXPRESS  OR IMPLIED, INCLUDING  BUT NOT LIMITED TO THE
+	WARRANTIES  OF MERCHANTABILITY, FITNESS    FOR A  PARTICULAR
+	PURPOSE AND NONINFRINGEMENT. IN  NO EVENT SHALL  THE AUTHORS
+	OR  COPYRIGHT HOLDERS  BE  LIABLE FOR ANY CLAIM,  DAMAGES OR
+	OTHER LIABILITY,  WHETHER IN AN  ACTION OF CONTRACT, TORT OR
+	OTHERWISE, ARISING FROM, OUT OF   OR IN CONNECTION  WITH THE
+	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ***************************************************************/
 
+using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace System.Ini
@@ -74,6 +77,10 @@ namespace System.Ini
         // Indicates whether escape characters are allowed in the INI file.
         [NonSerialized]
         private readonly bool _allowEscapeChars = false;
+
+        // Indicates whether multi line values are allowed in the INI file.
+        [NonSerialized]
+        private readonly bool _allowMultiLine = false;
 
         // String used to represent line breaks in the INI file.
         [NonSerialized]
@@ -518,14 +525,14 @@ namespace System.Ini
             bool emptySection = string.IsNullOrEmpty(section);
             bool expectedValue = !string.IsNullOrEmpty(value); // Indicates that value is not set.
             bool inSection = emptySection;
-            Match lastMatch = null; // Keep track of the last match for future reference
+            Match lastMatch = null; // Keep track of the last match for future reference.
             StringBuilder sb = new StringBuilder(_content);
 
 
-            // Escape the value if necessary
+            // Escape the value if necessary.
             if (_allowEscapeChars && expectedValue) value = ToEscape(value);
 
-            // Iterate over the content to find the section and key, and set the value
+            // Iterate over the content to find the section and key, and set the value.
             for (int i = 0; i < _matches.Count; i++)
             {
                 Match match = _matches[i];
@@ -533,16 +540,16 @@ namespace System.Ini
                 if (match.Groups["section"].Success)
                 {
                     inSection = match.Groups["value"].Value.Equals(section, _comparison);
-                    if (emptySection) break; // If no section is specified, break out of the loop
+                    if (emptySection) break; // If no section is specified, break out of the loop.
                     continue;
                 }
 
-                // If inside the correct section and the match is an entry
+                // If inside the correct section and the match is an entry.
                 if (inSection && match.Groups["entry"].Success)
                 {
                     lastMatch = match;
 
-                    // Continue if the key doesn't match
+                    // Continue if the key doesn't match.
                     if (!match.Groups["key"].Value.Equals(key, _comparison))
                         continue;
 
@@ -553,12 +560,19 @@ namespace System.Ini
                     int index = group.Index;
                     int length = group.Length;
 
-                    // Remove the old value.
-                    sb.Remove(index, length);
-
-                    // Insert the new value in its place.
                     if (expectedValue)
+                    {
+                        // Remove the old value.
+                        sb.Remove(index, length);
+
+                        // Insert the new value in its place.
                         sb.Insert(index, value);
+                    }
+                    else
+                    {
+                        // Remove all entry.
+                        sb.Remove(match.Index, match.Length);
+                    }
 
                     // Indicate the value has been set.
                     expectedValue = false;
@@ -1199,7 +1213,21 @@ namespace System.Ini
 
             // If the desired type is string, return the value directly.
             if (type == typeof(string))
-                return value;
+                return value ?? defaultValue;
+
+            // If the desired type is string, return the value directly.
+            if (type == typeof(bool))
+            {
+                switch (value.ToLower(_culture))
+                {
+                    case "1":
+                    case "true":
+                        return true;
+                    case "0":
+                    case "false":
+                        return false;
+                }
+            }
 
             // If a value is found and can be converted from string, convert it and return.
             if (value != null && converter.CanConvertFrom(typeof(string)))
@@ -1666,7 +1694,8 @@ namespace System.Ini
             if (elementType == typeof(byte))
             {
                 byte[] bytes = (byte[])array;
-                WriteString(section, key, new string(Convert.ToBase64String(bytes, 0, bytes.Length)));
+                string value = Convert.ToBase64String(bytes, 0, bytes.Length);
+                WriteString(section, key, value);
             }
 
             // Use the provided converter or get the default converter for the element type.
@@ -1843,12 +1872,16 @@ namespace System.Ini
             Type type = obj.GetType();
 
             // Retrieve all instance properties of the given object
-            PropertyInfo[] properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic);
+            PropertyInfo[] properties = type.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
             // Read settings for each property
             foreach (PropertyInfo property in properties)
             {
-                ReadProperty(property, obj);
+                object defaultValue = property.GetCustomAttributes(typeof(DefaultValueAttribute), false).FirstOrDefault() is
+                    DefaultValueAttribute defaultValueAttribute
+                    ? defaultValueAttribute.Value
+                    : null;
+                ReadProperty(property, obj, defaultValue);
             }
         }
 
