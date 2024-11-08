@@ -58,6 +58,112 @@ using System.Reflection;
 namespace System.Ini
 {
     /// <summary>
+    /// Attribute that associates a class or property with a specific section in the INI file.
+    /// Used by the <see cref="IniFile.ReadSettings"/> and <see cref="IniFile.WriteSettings"/> methods
+    /// to identify and process INI file sections.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+    [Serializable]
+    public sealed class IniSectionAttribute : Attribute
+    {
+        private readonly string _sectionName = null;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IniSectionAttribute"/> class with a specified section name.
+        /// </summary>
+        /// <param name="sectionName">The name of the INI section.</param>
+        public IniSectionAttribute(string sectionName)
+        {
+            _sectionName = sectionName;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IniSectionAttribute"/> class with the default section name.
+        /// </summary>
+        public IniSectionAttribute()
+        {
+        }
+
+        /// <summary>
+        /// Gets the name of the INI section.
+        /// </summary>
+        public string Name
+        {
+            get => _sectionName;
+        }
+
+        /// <inheritdoc />
+        public override bool IsDefaultAttribute()
+        {
+            return string.IsNullOrEmpty(_sectionName);
+        }
+
+        /// <inheritdoc />
+        public override bool Match(object obj)
+        {
+            return obj is IniSectionAttribute attribute && attribute.Name.Equals(_sectionName);
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return _sectionName;
+        }
+    }
+
+    /// <summary>
+    /// Attribute that associates a property with a specific entry in the INI file.
+    /// Used by the <see cref="IniFile.ReadSettings"/> and <see cref="IniFile.WriteSettings"/> methods
+    /// to identify and process individual INI file entries.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = false)]
+    [Serializable]
+    public sealed class IniEntryAttribute : Attribute
+    {
+        private readonly string _entryName = null;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IniEntryAttribute"/> class with a specified entry name.
+        /// </summary>
+        /// <param name="entryName">The name of the INI entry.</param>
+        public IniEntryAttribute(string entryName)
+        {
+            _entryName = entryName;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IniEntryAttribute"/> class with the default entry name.
+        /// </summary>
+        public IniEntryAttribute()
+        {
+        }
+
+        /// <summary>
+        /// Gets the name of the INI entry.
+        /// </summary>
+        public string Name => _entryName;
+
+        /// <inheritdoc />
+        public override bool IsDefaultAttribute()
+        {
+            return string.IsNullOrEmpty(_entryName);
+        }
+
+        /// <inheritdoc />
+        public override bool Match(object obj)
+        {
+            return obj is IniEntryAttribute attribute && attribute.Name.Equals(_entryName);
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return _entryName;
+        }
+
+    }
+
+    /// <summary>
     /// Represents a regular expression-based, collection-free INI file parser that preserves the original file formatting when editing entries.
     /// </summary>
     [Serializable]
@@ -1485,17 +1591,30 @@ namespace System.Ini
         /// </exception>
         public void ReadProperty(PropertyInfo property, object obj, object defaultValue = null, TypeConverter converter = null)
         {
-            // Check if the property is null and throw an exception if it is
             if (property == null)
                 throw new ArgumentNullException(nameof(property));
 
-            // Get the section name by determining the declaring path of the property type.
-            string section = GetDeclaringPath(property.DeclaringType);
+            // Determine the section name for the INI file entry.
+            // If no custom section is specified on the property, use the declaring type name as the default section name.
+            Type declaringType = property.DeclaringType;
+            string section = property.GetCustomAttributes(typeof(IniSectionAttribute), false)
+                                 .FirstOrDefault() is IniSectionAttribute propertySectionAttribute
+                                 && !propertySectionAttribute.IsDefaultAttribute()
+                                    ? propertySectionAttribute.Name
+                                    : declaringType?.GetCustomAttributes(typeof(IniSectionAttribute), false)
+                                    .FirstOrDefault() is IniSectionAttribute declaringTypeSectionAttribute
+                                      && !declaringTypeSectionAttribute.IsDefaultAttribute()
+                                        ? declaringTypeSectionAttribute.Name
+                                        : GetDeclaringPath(declaringType);
 
-            // Use the property name as the key.
-            string key = property.Name;
+            // Determine the key name for the INI file entry.
+            // If no custom key name is specified, use the property name as the default key.
+            string key = property.GetCustomAttributes(typeof(IniEntryAttribute), false)
+                .FirstOrDefault() is IniEntryAttribute propertyEntryAttribute && !propertyEntryAttribute.IsDefaultAttribute()
+                ? propertyEntryAttribute.Name
+                : property.Name;
 
-            // Read the property value from the INI file using the section and key.
+            // Read the property value from the INI file using the provided section and key names.
             ReadProperty(section, key, property, obj, defaultValue, converter);
         }
 
