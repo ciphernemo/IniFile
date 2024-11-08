@@ -1317,34 +1317,53 @@ namespace System.Ini
             // Attempt to read the string value from the ini file for the given section and key.
             string value = ReadString(section, key, null);
 
-            // If the desired type is string, return the value directly.
-            if (type == typeof(string))
-                return value ?? defaultValue;
-
-            // If the desired type is string, return the value directly.
-            if (type == typeof(bool))
+            // If a value is found and can be converted from string, convert it and return.
+            if (value != null)
             {
-                switch (value.ToLower(_culture))
+                // If the desired type is string, return the value directly.
+                if (type == typeof(string))
+                    return value;
+
+                // If the desired type is boolean, try custom conversion for boolean.
+                if (type == typeof(bool))
                 {
-                    case "1":
-                    case "true":
-                        return true;
-                    case "0":
-                    case "false":
-                        return false;
+                    switch (value.ToLower(_culture))
+                    {
+                        case "1":
+                        case "true":
+                            return true;
+                        case "0":
+                        case "false":
+                            return false;
+                    }
+                }
+
+                // If the type is an enumeration, try parsing the enum value.
+                if (type.IsEnum)
+                {
+                    try
+                    {
+                        // Try to parse the value as an enum name or numeric value.
+                        return Enum.Parse(type, value, ignoreCase: true);
+                    }
+                    catch
+                    {
+                        // If parsing fails, the default value will be returned at the end of the method.
+                    }
+                }
+
+                if (converter.CanConvertFrom(typeof(string)))
+                {
+                    try
+                    {
+                        return converter.ConvertFromString(null, _culture, value);
+                    }
+                    catch
+                    {
+                        // If fails process the default value.
+                    }
                 }
             }
-
-            // If a value is found and can be converted from string, convert it and return.
-            if (value != null && converter.CanConvertFrom(typeof(string)))
-                try
-                {
-                    return converter.ConvertFromString(null, _culture, value);
-                }
-                catch
-                {
-                    // If fails process the default value.
-                }
 
             // If a default value is provided and needs conversion, convert it to the desired type
             if (defaultValue != null && defaultValue.GetType() != type && converter.CanConvertFrom(defaultValue.GetType()))
