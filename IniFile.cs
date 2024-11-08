@@ -201,6 +201,12 @@ namespace System.Ini
         [NonSerialized]
         private readonly StringComparison _comparison = StringComparison.InvariantCultureIgnoreCase;
 
+        [NonSerialized]
+        private readonly HashSet<string> _trueValues;
+
+        [NonSerialized]
+        private readonly HashSet<string> _falseValues;
+
         /// <summary>
         /// Returns a string representing the contents of the INI file.
         /// </summary>
@@ -251,6 +257,9 @@ namespace System.Ini
             _lineBreaker = AutoDetectLineBreaker(content);
             _matches = new List<Match>(16);
             Content = content;
+            StringComparer comparer = GetComparer(comparison);
+            _trueValues = new HashSet<string>(comparer) { "true", "yes", "on", "enable", "1" };
+            _falseValues = new HashSet<string>(comparer) { "false", "no", "off", "disable", "0" };
         }
 
         /// <summary>
@@ -1327,14 +1336,19 @@ namespace System.Ini
                 // If the desired type is boolean, try custom conversion for boolean.
                 if (type == typeof(bool))
                 {
-                    switch (value.ToLower(_culture))
+                    if (int.TryParse(value, NumberStyles.Integer | NumberStyles.AllowHexSpecifier, _culture,
+                            out int number))
                     {
-                        case "1":
-                        case "true":
-                            return true;
-                        case "0":
-                        case "false":
-                            return false;
+                        return number != 0;
+                    }
+
+                    if (_trueValues.Contains(value))
+                    {
+                        return true;
+                    }
+                    if (_falseValues.Contains(value))
+                    {
+                        return false;
                     }
                 }
 
