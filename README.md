@@ -1,11 +1,101 @@
-> ***Note: this article is currently under construction...***
+# IniFile — Convenient Parser for INI Files
 
-
-# C# INI File Parser
-Represents a parser that uses regular expressions and doesn't use any collections. It can parse different formats of the configuration file (also called as the INI file) and keeps the original file formatting when you edit entries.  
+Represents a parser designed for easy reading, writing, and managing INI files that uses regular expressions. It can parse different formats of the configuration file (also called as the INI file) and keeps the original file formatting when you edit entries. It supports sections, keys, class serialization and deserialization with attributes, and flexible data handling using type converters.
 
 ## Introduction
+There is an opinion that the INI file is outdated and is not suitable for storing parameters. I will not argue with this statement, but I will give several examples when using an INI file is justified and is the optimal solution:
+1. If your software works with the command line, it is more convenient to group and transfer a large number of parameters in bulk via an INI file.
+2. If your software uses third-party utilities that accept parameters via INI.
+3. If your software has a small number of parameters and does not have a "settings" window or any graphical interface at all.
+4. If you need the ability to export and import parameters to a file in a format understandable to the user.
+5. Just as a backup option or as a nod to the past when the grass was greener and we were younger, when Doom was installed from a floppy disk, and parameters were transferred via INI.
 
+### Key features of this parser
+
+- **Read values from INI files with type conversion**:
+```csharp
+int userId = iniFile.Read("settings", "user_id", -1); // Default = -1
+```
+ - **Write values to sections**:
+```csharp
+iniFile.Write("settings", "theme", "dark");
+```
+- **Load a file**:
+```csharp
+IniFile iniFile = IniFile.Load("config.ini");
+```
+- **Save changes**:
+```csharp
+iniFile.Save("updated_config.ini");
+```
+- **Support for encoding via the `Encoding` parameter**:
+```csharp
+IniFile iniFile = IniFile.Load("config.ini", Encoding.UTF8);
+iniFile.Save("updated_config.ini, Encoding.UTF8");
+```
+- **Object Serialization and Deserialization**:  
+Using attributes, you can automatically map INI file data to classes and their properties.
+```csharp
+[IniSection("settings")]
+public class Settings
+{
+    [IniEntry("lang")]
+    public string Language { get; set; }
+
+    // You don't need to specify it if the name of the property matches the parameter.
+    // [IniEntry("theme")] 
+    public string Theme { get; set; }
+
+    [IniEntry("vol")]
+    public int Volume { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        IniFile iniFile = IniFile.Load("config.ini");
+
+        // Read object
+        Settings settings = new Settings();
+        iniFile.ReadSettings(settings);
+
+        // Modify data
+        settings.Theme = "light";
+        settings.Volume = 50;
+
+        // Save back to file
+        iiniFile.WriteSettings(settings);
+        iniFile.Save("updated_config.ini");
+    }
+}
+```
+
+If the INI file contains:
+```
+[settings]
+lang=en
+theme=dark
+vol=80
+```
+
+The code creates the object:
+```csharp
+settings.Language = "en";
+settings.Theme = "dark";
+settings.Volume = 80;
+```
+
+## Installation
+Simply add `IniFile.cs` to your project and start using it. It is ideal for small solutions without connecting third-party libraries.
+
+## License
+This project is distributed under the MIT license. You are free to use and modify it as needed.
+
+---
+
+# Background
+ 
 Parsing INI files is a fairly common task in programming when working with configurations. INI files are simple and easy to read by both humans and machines. There are several main ways to implement this:
 - Manual parsing using string manipulation functions. This approach allows for maximum flexibility in handling various INI file formats, but requires more effort to implement.
 - Using modules of various APIs. They provide ready-made functions for reading, writing, and processing data in the INI format. This is a simpler and faster way, but it is limited by the capabilities of the libraries themselves, and it also makes the project platform-dependent.
@@ -496,5 +586,4 @@ These helper methods are used inside the IniFileRegexParser class to ensure corr
 Using regular expressions to parse INI files in C# provides an efficient and flexible way to handle configuration data. This approach allows not only to parse the contents correctly, but also to preserve the original formatting, which can be critical in some applications.
 
 I hope this article helps you better understand and use regular expressions to work with INI files!
-> To be continued...
 
