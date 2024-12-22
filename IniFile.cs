@@ -4,48 +4,48 @@
 
 •   Description
 
-    THe IniFile is a class that represents a parser of ini files 
+    THe IniFile is a class that represents a parser of ini files
     using regular expressions.
 
     The  class implements  methods  for working with  ini files:
        - parsing INI files;
        - getting sections, keys and values by sections and keys;
        - setting values;
-	   - automatically initializes properties.
+       - automatically initializes properties.
 
     To  use the class, you  must  pass  it  a  string  or stream
     containing the ini file data and some parsing settings.
 
 •   License
 
-	This software is distributed under the MIT License (MIT)
+    This software is distributed under the MIT License (MIT)
 
     © 2024 Pavel Bashkardin.
 
     Permission is  hereby granted, free of charge, to any person
-	obtaining   a copy    of    this  software    and associated
-	documentation  files  (the “Software”),    to  deal   in the
-	Software without  restriction, including without  limitation
-	the rights to use, copy, modify, merge, publish, distribute,
-	sublicense,  and/or  sell  copies   of  the Software, and to
-	permit persons to whom the Software  is furnished to  do so,
-	subject to the following conditions:
+    obtaining   a copy    of    this  software    and associated
+    documentation  files  (the “Software”),    to  deal   in the
+    Software without  restriction, including without  limitation
+    the rights to use, copy, modify, merge, publish, distribute,
+    sublicense,  and/or  sell  copies   of  the Software, and to
+    permit persons to whom the Software  is furnished to  do so,
+    subject to the following conditions:
 
-	The above copyright  notice and this permission notice shall
-	be  included  in all copies   or substantial portions of the
-	Software.
+    The above copyright  notice and this permission notice shall
+    be  included  in all copies   or substantial portions of the
+    Software.
 
-	THE  SOFTWARE IS  PROVIDED  “AS IS”, WITHOUT WARRANTY OF ANY
-	KIND, EXPRESS  OR IMPLIED, INCLUDING  BUT NOT LIMITED TO THE
-	WARRANTIES  OF MERCHANTABILITY, FITNESS    FOR A  PARTICULAR
-	PURPOSE AND NONINFRINGEMENT. IN  NO EVENT SHALL  THE AUTHORS
-	OR  COPYRIGHT HOLDERS  BE  LIABLE FOR ANY CLAIM,  DAMAGES OR
-	OTHER LIABILITY,  WHETHER IN AN  ACTION OF CONTRACT, TORT OR
-	OTHERWISE, ARISING FROM, OUT OF   OR IN CONNECTION  WITH THE
-	SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+    THE  SOFTWARE IS  PROVIDED  “AS IS”, WITHOUT WARRANTY OF ANY
+    KIND, EXPRESS  OR IMPLIED, INCLUDING  BUT NOT LIMITED TO THE
+    WARRANTIES  OF MERCHANTABILITY, FITNESS    FOR A  PARTICULAR
+    PURPOSE AND NONINFRINGEMENT. IN  NO EVENT SHALL  THE AUTHORS
+    OR  COPYRIGHT HOLDERS  BE  LIABLE FOR ANY CLAIM,  DAMAGES OR
+    OTHER LIABILITY,  WHETHER IN AN  ACTION OF CONTRACT, TORT OR
+    OTHERWISE, ARISING FROM, OUT OF   OR IN CONNECTION  WITH THE
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ***************************************************************/
-
+#nullable disable
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -1254,6 +1254,36 @@ namespace System.Ini
         }
 
         /// <summary>
+        /// Reads a string associated with the specified section and key from the INI file.
+        /// </summary>
+        /// <param name="section">
+        /// Section name. Pass null to get global entries above all sections.
+        /// </param>
+        /// <param name="key">
+        /// Key name.
+        /// </param>
+        /// <param name="defaultValue">
+        /// The value to be returned if the specified entry is not found.
+        /// </param>
+        /// <param name="args">
+        /// An object array that contains zero or more objects to format.
+        /// </param>
+        /// <returns>
+        /// Read value.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// Thrown when parameter <paramref name="key"/> is null.
+        /// </exception>
+        public string FormatString(string section, string key, string defaultValue = "", params object[] args)
+        {
+            if (key == null)
+                throw new ArgumentNullException(nameof(key));
+
+            string format = GetValue(section, key, defaultValue);
+            return format == null ? null : string.Format(_culture, format, args);
+        }
+
+        /// <summary>
         /// Reads an array of strings associated with the specified section and key from the INI file.
         /// </summary>
         /// <param name="section">
@@ -1486,7 +1516,7 @@ namespace System.Ini
             if (elementType == typeof(byte))
             {
                 string value = ReadString(section, key, string.Empty);
-                return Convert.FromBase64String(value);
+                return Convert.FromHexString(value);
             }
 
             // Retrieve the array of string values associated with the given section and key.
@@ -1846,7 +1876,7 @@ namespace System.Ini
             if (elementType == typeof(byte))
             {
                 byte[] bytes = (byte[])array;
-                string value = Convert.ToBase64String(bytes, 0, bytes.Length);
+                string value = Convert.ToHexString(bytes, 0, bytes.Length);
                 WriteString(section, key, value);
             }
 
