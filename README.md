@@ -1,5 +1,6 @@
-# IniFile — Convenient Parser for INI Files
+# IniFile Mini
 
+Quick and easy ini file reading and writing that's also quite powerful. This is based on the original IniFile parser by 
 Represents a parser designed for easy reading, writing, and managing INI files that uses regular expressions. It can parse different formats of the configuration file (also called as the INI file) and keeps the original file formatting when you edit entries. It supports sections, keys, class serialization and deserialization with attributes, and flexible data handling using type converters.
 
 ## Introduction
