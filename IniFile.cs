@@ -14,30 +14,30 @@ using System.Text.RegularExpressions;
 public sealed class IniFile
 {
 	//░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░150 Column Max░░░░░░░░░
-	#region ABOUT: IniFile
-	/*
-		An ini configuration file parser designed for easy reading and writing of varying ini formats via a pre-set regular expression.
-		It retains the original file formatting when updating values and supports easy class serialization and deserialization.
-		To use the class, pass it an ini file name, text reader, or stream containing the ini file data, along with optional settings.
-	*/
-	#endregion
-
 	#region VERSION, LICENSE
 	/*
-		Version:		1.1 mini
-		Author:			Original v1.0: Pavel Bashkardin, v1.1 mini: cipher_nemo
+		IniFile-Mini
+
+		Version:		2.0
+		Author:			cipher_nemo
 		License:		MIT License
 		Creation Date:	08/28/2024
-		Updated:		01/29/2025
+		Updated:		02/06/2025
 		Version History:
-			1.0: Builds in 2024: 08/28, 08/31, 10/22, 11/07, 11/08, 12/22
-			1.1 mini: 01/29/2025 by cipher_nemo: minor regex pattern change, GetKeysValues(), and customization & formatting to match PortalTime
+			1.0: Fork from IniFile with 2024 Builds: 08/28, 08/31, 10/22, 11/07, 11/08, 12/22
+			1.1: 01/29/2025 by cipher_nemo: minor regex pattern change, GetKeysValues(), and customization & formatting to match PortalTime
+			2.0: 02/06/2025 by cipher_nemo: Shrunk ng256's IniFile from 2,781 to just 1,104 lines, updated comments, added regions, trimmed repeated 
+				code, removed variable type conversions, simplified developer experience for reading and writing, migrated to string, List, and 
+				Dictionary types, down to two Write functions, eight Read functions for keys/values, and one Read function for sections and also 
+				comments. Added support for matching sections with or without square brackets, trimming/adding double quotes around values, handling 
+				duplicate keys, and padding key/value delimiters. All options moved into a single class instead of handling them individually in 
+				functions. I refactored all code, moved repeated code into two classes, and simplified serialization/de-serialization.
 
-		Original code available at:
+		Original code for IniFile Copyright ©2024 Pavel Bashkardin, available at:
 		https://github.com/ng256/IniFile
 		https://www.codeproject.com/Articles/5387487/Csharp-INI-File-Parser
 
-		Copyright ©2024 Pavel Bashkardin
+		Copyright ©2025 cipher_nemo
 
 		Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
 		"Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish,
