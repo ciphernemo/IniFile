@@ -13,7 +13,7 @@ using System.Text.RegularExpressions;
 
 public sealed class IniFile
 {
-	//░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░150 Column Max░░░░░░░░░
+	//░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░150 Column Max with tabs at 4 spaces░░░░░░░░░
 	#region VERSION, LICENSE
 	/*
 		IniFile-Mini
