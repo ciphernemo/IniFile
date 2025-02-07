@@ -17,7 +17,7 @@ public sealed class IniFile
 	#region ABOUT: IniFile
 	/*
 		An ini configuration file parser designed for easy reading and writing of varying ini formats via a pre-set regular expression.
-		It retains the original file formatting when updating values and supports easy class serialization and deserialization.
+		It retains the original file formatting when updating values.
 		To use the class, pass it an ini file name, text reader, or stream containing the ini file data, along with optional settings.
 	*/
 	#endregion
@@ -39,7 +39,7 @@ public sealed class IniFile
 				Dictionary types, down to two Write functions, eight Read functions for keys/values, and one Read function for sections and also 
 				comments. Added support for matching sections with or without square brackets, trimming/adding double quotes around values, handling 
 				duplicate keys, and padding key/value delimiters. All options moved into a single class instead of handling them individually in 
-				functions. I refactored all code, moved repeated code into two classes, and simplified serialization/de-serialization.
+				functions. I refactored all code, moved repeated code into two classes, and dropped serialization/deserialization.
 			2.1: 02/06/2025: Corrected bug with DuplicateExists skipping renamed duplicates, allowed passing null for options in constructor
 
 		Original code for IniFile Copyright ©2024 Pavel Bashkardin, available at:
