@@ -1,4 +1,4 @@
-# IniFile Mini
+# IniFile-Mini
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
 ![INI file icon](https://upload.wikimedia.org/wikipedia/en/thumb/2/2f/INI_file_icon.png/64px-INI_file_icon.png)
@@ -13,7 +13,7 @@ Long live the simple yet effective INI configuration file! Some may consider ini
 * Compatibility. JSON might be king across the Internet, but older software may be incompatible with it. There are many third party utilities and libraries that work well with ini files.
 * Longevity. From 16-bit to 64-bit, both old and modern software should be able to work with plain text files like the ini file.
 
-### Key Features
+### Key Features of IniFile-Mini
 
 * **Quickly read data from ini files**
   * Read individual Values, Keys, Sections, Comments
