@@ -41,7 +41,7 @@ Add the `IniFile.cs` file to your project and reference it by the Ini namespace 
 
 **Create an empty IniFile object**:
 ```csharp
-IniFile MyFile = IniFile.Create(null);
+Ini.IniFile MyFile = IniFile.Create(null);
 ```
 All public objects have summary information for IntelliSense.
 
