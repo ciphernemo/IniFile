@@ -211,8 +211,12 @@ public sealed class IniFile
 		{
 			if (ResultsDict.ContainsKey(ResultKey))
 			{
-				if (MyParent._allowDuplicateKeys) { ResultKey += "_" + Generate6CharHash(); }
-				return true;
+				if (MyParent._allowDuplicateKeys)
+				{
+					ResultKey += "_" + Generate6CharHash();
+					return false;
+				}
+				else { return true; }
 			}
 			return false;
 		}
