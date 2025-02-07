@@ -25,7 +25,6 @@ Long live the simple yet effective INI configuration file! Some may consider ini
   * Updates Values of existing Keys or adds new Key/Value pairs automatically
   * Quickly update data in memory before saving it to file
 * **Edit anything in an ini file manually**
-* **Object serialization and de-serialization**
 * **Useful support various options/aspects**
   * File encoding
   * Escape/unescape characters: unicode, hex, and control chars
@@ -51,14 +50,14 @@ You don't need to create an empty object, as you can open an INI file immediatel
 Ini.IniFile MyFile = IniFile.Load("C:\\MyConfig.ini", null);
 ```
 
-Read all of the key/value pairs, read all pairs in a section with serialization, and read a single value:
+Read all of the key/value pairs, read all pairs in a section by direct reference, and read a single value:
 ```csharp
 Dictionary<string, string> MyContent1 = MyFile.ReadAllKeysValues(null);
 Dictionary<string, string> MyContent2 = MyFile["MySection", null];
 string MyValue = MyFile.ReadValue("MySection", "MyKey", null);
 ```
 
-Write all of the key/value pairs globally, write all pairs in a section with deserialization, and update/add a single key/value pair:
+Write all of the key/value pairs globally, write all pairs in a section by direct reference, and update/add a single key/value pair:
 ```csharp
 MyFile.WriteKeysValues(null, MyContent1);
 MyFile["MySection", null] = MyContent2;
@@ -100,7 +99,7 @@ ini.Save("D:\\config.ini");
 
 I am developing another project that works best with an INI file to load and save a long list of internal settings. These settings need to be easily accessible and editable by its users to prevent me from having to continually update my project. Non-technical users would get lost with JSON or XML, so it's back to basics for my app.
 
-I found Pavel Bashkardin's IniFile project on both the old CodeProject and GitHub. Something about it clicked with me... I loved it! However, I quickly discovered that it did not support reading all key/value pairs by section. So I updated that. Then I discovered other little features I needed that it didn't support. Once I started poking around to update my copy, I realized Pavel's coding style isn't really utilizing the latest C#/.NET practices, and it was a bit unwieldy to navigate to make changes. So I revamped almost everything. I learned how Pavel approached this, took his good practices and ideas, dropped things I didn't like, and transformed it into a leaner, more easily navigated tool. Isn't that what programmers like to do? While my version is much easier to tweak, Pavel's approach is still more robust than mine for automatic type conversions. They're now different tools that still function in a familiar way.
+I found Pavel Bashkardin's IniFile project on both the old CodeProject and GitHub. Something about it clicked with me... I loved it! However, I quickly discovered that it did not support reading all key/value pairs by section. So I updated that. Then I discovered other little features I needed that it didn't support. Once I started poking around to update my copy, I realized Pavel's coding style isn't really utilizing the latest C#/.NET practices, and it was a bit unwieldy to navigate to make changes. So I revamped almost everything. I learned how Pavel approached this, took his good practices and ideas, dropped things I didn't like, and transformed it into a leaner, more easily navigated tool. Isn't that what programmers like to do? While my version is much easier to tweak, Pavel's approach is still more robust than mine for serialization/deserialization. They're now different tools that still function in a familiar way.
 
 # Reference
 
