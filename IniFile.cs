@@ -503,7 +503,9 @@ public sealed class IniFile
 	/// <exception cref="ArgumentNullException">Stream is null.</exception>
 	public static IniFile Load(Stream Stream, IniOptions? Options) //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 	{
-		using StreamReader reader = new StreamReader(Stream ?? throw new ArgumentNullException(nameof(Stream)), Options.Encoding ?? Encoding.UTF8);
+		Encoding enc = Encoding.UTF8;
+		if (Options is not null) { enc = Options.Encoding; }
+		using StreamReader reader = new StreamReader(Stream ?? throw new ArgumentNullException(nameof(Stream)), enc);
 		return new IniFile(reader.ReadToEnd(), Options);
 	}
 
@@ -516,7 +518,9 @@ public sealed class IniFile
 	public static IniFile Load(string FileName, IniOptions? Options) //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 	{
 		string filePath = GetFullPath(FileName, true);
-		return new IniFile(File.ReadAllText(filePath, Options.Encoding ?? AutoDetectEncoding(filePath, Encoding.UTF8)), Options);
+		Encoding enc = AutoDetectEncoding(filePath, Encoding.UTF8);
+		if (Options is not null) { enc = Options.Encoding; }
+		return new IniFile(File.ReadAllText(filePath, enc), Options);
 	}
 
 	/// <summary>
@@ -528,7 +532,8 @@ public sealed class IniFile
 	public static IniFile LoadOrCreate(string FileName, IniOptions? Options) //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 	{
 		string filePath = GetFullPath(FileName);
-		Encoding enc = Options.Encoding ?? AutoDetectEncoding(filePath, Encoding.UTF8);
+		Encoding enc = AutoDetectEncoding(filePath, Encoding.UTF8);
+		if (Options is not null) { enc = Options.Encoding; }
 		return new IniFile(File.Exists(filePath) ? File.ReadAllText(filePath, enc) : String.Empty, Options);
 	}
 
