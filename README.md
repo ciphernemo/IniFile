@@ -39,7 +39,7 @@ Long live the simple yet effective INI configuration file! Some may consider ini
 ## Usage
 Add the `IniFile.cs` file to your project and reference it by the Ini namespace and IniFile constructor to start using it. No need to mess with dependencies, NuGet extensions, etc. INI files are simple, so your ini tool should be simple as well!
 
-**Create an empty IniFile object**:
+Create an empty IniFile object:
 ```csharp
 Ini.IniFile MyFile = IniFile.Create(null);
 ```
