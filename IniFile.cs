@@ -14,24 +14,33 @@ using System.Text.RegularExpressions;
 public sealed class IniFile
 {
 	//░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░150 Column Max with tabs at 4 spaces░░░░░░░░░
+	#region ABOUT: IniFile
+	/*
+		An ini configuration file parser designed for easy reading and writing of varying ini formats via a pre-set regular expression.
+		It retains the original file formatting when updating values and supports easy class serialization and deserialization.
+		To use the class, pass it an ini file name, text reader, or stream containing the ini file data, along with optional settings.
+	*/
+	#endregion
+
 	#region VERSION, LICENSE
 	/*
 		IniFile-Mini
 
-		Version:		2.0
+		Version:		2.1
 		Author:			cipher_nemo
 		License:		MIT License
 		Creation Date:	08/28/2024
 		Updated:		02/06/2025
 		Version History:
 			1.0: Fork from IniFile with 2024 Builds: 08/28, 08/31, 10/22, 11/07, 11/08, 12/22
-			1.1: 01/29/2025 by cipher_nemo: minor regex pattern change, GetKeysValues(), and customization & formatting to match PortalTime
-			2.0: 02/06/2025 by cipher_nemo: Shrunk ng256's IniFile from 2,781 to just 1,104 lines, updated comments, added regions, trimmed repeated 
+			1.1: 01/29/2025: minor regex pattern change, GetKeysValues(), and customization & formatting to match PortalTime
+			2.0: 02/06/2025: Shrunk ng256's IniFile from 2,781 to just 1,104 lines, updated comments, added regions, trimmed repeated 
 				code, removed variable type conversions, simplified developer experience for reading and writing, migrated to string, List, and 
 				Dictionary types, down to two Write functions, eight Read functions for keys/values, and one Read function for sections and also 
 				comments. Added support for matching sections with or without square brackets, trimming/adding double quotes around values, handling 
 				duplicate keys, and padding key/value delimiters. All options moved into a single class instead of handling them individually in 
 				functions. I refactored all code, moved repeated code into two classes, and simplified serialization/de-serialization.
+			2.1: 02/06/2025: Corrected bug with DuplicateExists skipping renamed duplicates, allowed passing null for options in constructor
 
 		Original code for IniFile Copyright ©2024 Pavel Bashkardin, available at:
 		https://github.com/ng256/IniFile
@@ -395,10 +404,14 @@ public sealed class IniFile
 		//private constructor to prevent direct instantiation
 	}
 
-	private IniFile(string content, IniOptions options) //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+	private IniFile(string content, IniOptions? options) //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 	{
 		//constructor accepting ini content as a string and the following settings:
 		//	string comparison rule, regex pattern, escape character allowance, trim quotes, match square brackets, and delimiter
+
+		//if options is null, load defaults
+		options ??= new IniOptions();
+		//if content is null, set it to an empty string
 		content ??= String.Empty;
 		_comparison = options.Comparison;
 		_content = content;
@@ -430,7 +443,7 @@ public sealed class IniFile
 		//	@"(?<linebreaker>\r\n|\n)|" + ///capture line breaks
 		//	@"(?<whitespace>[^\S\r\n]+)" //ignore any whitespace
 		_regex = new Regex(@"(?=\S)(?<text>(?<comment>(?<open_comment>[#;]+)(?:[^\S\r\n]*)(?<value>.+))|(?<section>(?<open_section>\[)(?:\s*)(?<value_section>[^\]]*\S+)(?:[^\S\r\n]*)(?<close>\]))|(?<entry>(?<key>[^=\r\n\ [\]]*\S)(?:[^\S\r\n]*)(?<delimiter>:|=)(?:[^\S\r\n]*)(?<value_entry>[^#;\r\n]*))|(?<undefined>.+))(?<=\S)|(?<linebreaker>\r\n|\n)|(?<whitespace>[^\S\r\n]+)",
-			GetRegexOptions(options.Comparison, RegexOptions.Compiled));
+			GetRegexOptions((options.Comparison), RegexOptions.Compiled));
 		_culture = GetCultureInfo(_comparison);
 		_trimValueQuotes = options.TrimValueQuotes;
 		_requireSectionSquareBrackets = options.RequireSectionSquareBrackets;
@@ -465,7 +478,7 @@ public sealed class IniFile
 	/// </summary>
 	/// <param name="Options">Ini options class. string comparison type and whether or not to allow escaped characters</param>
 	/// <returns>An instance of IniFile with the specified settings</returns>
-	public static IniFile Create(IniOptions Options) //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+	public static IniFile Create(IniOptions? Options) //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 	{
 		return new IniFile(string.Empty, Options);
 	}
@@ -476,7 +489,7 @@ public sealed class IniFile
 	/// <param name="Reader">TextReader containing the ini file data.</param>
 	/// <param name="Options">Ini options class. string comparison type and whether or not to allow escaped characters</param>
 	/// <returns>An instance of IniFile.</returns>
-	public static IniFile Load(TextReader Reader, IniOptions Options) //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+	public static IniFile Load(TextReader Reader, IniOptions? Options) //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 	{
 		return new IniFile(Reader.ReadToEnd(), Options);
 	}
@@ -488,7 +501,7 @@ public sealed class IniFile
 	/// <param name="Options">Ini options class. string comparison type and whether or not to allow escaped characters</param>
 	/// <returns>An instance of IniFile.</returns>
 	/// <exception cref="ArgumentNullException">Stream is null.</exception>
-	public static IniFile Load(Stream Stream, IniOptions Options) //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+	public static IniFile Load(Stream Stream, IniOptions? Options) //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 	{
 		using StreamReader reader = new StreamReader(Stream ?? throw new ArgumentNullException(nameof(Stream)), Options.Encoding ?? Encoding.UTF8);
 		return new IniFile(reader.ReadToEnd(), Options);
@@ -500,7 +513,7 @@ public sealed class IniFile
 	/// <param name="FileName">Path to the file containing ini data.</param>
 	/// <param name="Options">Ini options class. string comparison type and whether or not to allow escaped characters</param>
 	/// <returns>An instance of IniFile.</returns>
-	public static IniFile Load(string FileName, IniOptions Options) //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+	public static IniFile Load(string FileName, IniOptions? Options) //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 	{
 		string filePath = GetFullPath(FileName, true);
 		return new IniFile(File.ReadAllText(filePath, Options.Encoding ?? AutoDetectEncoding(filePath, Encoding.UTF8)), Options);
@@ -512,7 +525,7 @@ public sealed class IniFile
 	/// <param name="FileName">Path to the file containing ini data.</param>
 	/// <param name="Options">Ini options class. string comparison type and whether or not to allow escaped characters</param>
 	/// <returns>An instance of IniFile.</returns>
-	public static IniFile LoadOrCreate(string FileName, IniOptions Options) //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+	public static IniFile LoadOrCreate(string FileName, IniOptions? Options) //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 	{
 		string filePath = GetFullPath(FileName);
 		Encoding enc = Options.Encoding ?? AutoDetectEncoding(filePath, Encoding.UTF8);
