@@ -9,18 +9,18 @@ IniFile-Mini is an INI configuration file parser designed for easy reading and w
 
 ## Introduction
 Long live the simple yet effective INI configuration file! Some may consider ini files a relic of the past, but it is still used today because it is a simple, versatile, format that has survived for decades.
-* Simplicity. The INI file format is plain text file that excels at brevity due to its simlpe structure and loose rules. It's very easy for even non-technical users to read and write due to its visual simplicity and forgiving nature.
-* Compatibility. JSON might be king across the Internet, but older software may be incompatible with it. There are many third party utilies and libraries that work well with ini files.
+* Simplicity. The INI file format is a plain text file that excels at brevity due to its simple structure and loose rules. It's very easy for even non-technical users to read and write due to its visual simplicity and forgiving nature.
+* Compatibility. JSON might be king across the Internet, but older software may be incompatible with it. There are many third party utilities and libraries that work well with ini files.
 * Longevity. From 16-bit to 64-bit, both old and modern software should be able to work with plain text files like the ini file.
 
 ### Key Features
 
 * **Quickly read data from ini files**
-  * Read invdividual Values, Keys, Sections, Comments
+  * Read individual Values, Keys, Sections, Comments
   * Read multiple Key/Value pairs by Section or globally
   * Read from memory over and over again without reloading the file
 * **Easily write data to ini files**
-  * Write invdividual Values, Keys, and their Sections
+  * Write individual Values, Keys, and their Sections
   * Write multiple Key/Value pairs at once
   * Updates Values of existing Keys or adds new Key/Value pairs automatically
   * Quickly update data in memory before saving it to file
@@ -28,7 +28,7 @@ Long live the simple yet effective INI configuration file! Some may consider ini
 * **Object serialization and de-serialization**
 * **Useful support various options/aspects**
   * File encoding
-  * Escape/un-escape characters: unicode, hex, and control chars
+  * Escape/unescape characters: unicode, hex, and control chars
   * StringComparison support
   * Automatic adoption of ini file line breaks
 * **Easy to navigate code**
@@ -39,13 +39,11 @@ Long live the simple yet effective INI configuration file! Some may consider ini
 ## Usage
 Add the `IniFile.cs` file to your project and reference it by the Ini namespace and IniFile constructor to start using it. No need to mess with dependencies, NuGet extensions, etc. INI files are simple, so your ini tool should be simple as well!
 
-**Reference it directly or add a using statement to create an empty IniFile object**:
+**Create an empty IniFile object**:
 ```csharp
-Ini.IniFile MyFile.Create(null);
-
-using Ini;
-IniFile i = IniFile.Create(null);
+IniFile MyFile = IniFile.Create(null);
 ```
+All public objects have summary information for IntelliSense.
 
 ## Examples
 You don't need to create an empty object, as you can open an INI file immediately, which loads it into memory:
@@ -100,9 +98,9 @@ ini.Save("D:\\config.ini");
 
 # History of IniFile-Mini
 
-I am developing on another project that works best with an INI file to load and save a long list of internal settings. These settings neeed to be easily accessible and editable by its users to prevent me from having to consintually udpate my project. Non-technical users would get lost with JSON or XML, so it's back to basics for my app.
+I am developing another project that works best with an INI file to load and save a long list of internal settings. These settings need to be easily accessible and editable by its users to prevent me from having to continually update my project. Non-technical users would get lost with JSON or XML, so it's back to basics for my app.
 
-I found Pavel Bashkardin's IniFile project on both the old CodeProject and GitHub. Something about it clicked with me... I loved it! However, I quickly discovered that it did not support reading all key/value pairs by section. So I updated that. Then I discovered other little features I needed that it didn't support. Once I started poking around to update my copy, I realized Pavel's coding style isn't really utilizing the latest C#/.NET practices, and it was a bit unweildly to navigate to make changes. So I revamped almost everything. I learned how Pavel approached this, took his good practices and ideas, dropped things I didn't like, and transformed it into a leaner, more easily navigated tool. Isn't that what programmers like to do? While my version is much easier to tweak, Pavel's approach is still more robust than mine for automatic type conversions. They're now different tools that still function in a familiar way.
+I found Pavel Bashkardin's IniFile project on both the old CodeProject and GitHub. Something about it clicked with me... I loved it! However, I quickly discovered that it did not support reading all key/value pairs by section. So I updated that. Then I discovered other little features I needed that it didn't support. Once I started poking around to update my copy, I realized Pavel's coding style isn't really utilizing the latest C#/.NET practices, and it was a bit unwieldy to navigate to make changes. So I revamped almost everything. I learned how Pavel approached this, took his good practices and ideas, dropped things I didn't like, and transformed it into a leaner, more easily navigated tool. Isn't that what programmers like to do? While my version is much easier to tweak, Pavel's approach is still more robust than mine for automatic type conversions. They're now different tools that still function in a familiar way.
 
 # Reference
 
