@@ -8,7 +8,7 @@ Quick and easy INI file reading and writing that's also quite powerful. This is 
 IniFile-Mini is an INI configuration file parser designed for easy reading and writing of varying ini formats via a pre-set regular expression. It retains the original file formatting when updating values and supports easy class serialization and deserialization. To use the class, pass it an ini file name, text reader, or stream containing the ini file data, along with optional settings.
 
 ## Introduction
-Long live the simple yet effective INI configuration file! Some may consider ini files a relic of the past, but it is still used today because it is a simple, versatile, format that has survived for decades.
+Long live the simple yet effective INI configuration file! Some may consider ini files a relic of the past, but it is still used today because it is a simple and versatile format that has survived for decades.
 * Simplicity. The INI file format is a plain text file that excels at brevity due to its simple structure and loose rules. It's very easy for even non-technical users to read and write due to its visual simplicity and forgiving nature.
 * Compatibility. JSON might be king across the Internet, but older software may be incompatible with it. There are many third party utilities and libraries that work well with ini files.
 * Longevity. From 16-bit to 64-bit, both old and modern software should be able to work with plain text files like the ini file.
