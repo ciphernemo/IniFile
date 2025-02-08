@@ -455,10 +455,10 @@ public sealed class IniFile
 
 	#endregion
 
-	#region DE/SERIALIZATION
+	#region INDEXERS
 
 	/// <summary>
-	/// Reads or writes the Values, optionally matches to a specified Section.
+	/// Reads or writes the Key/Value pairs, optionally matches to a specified Section.
 	/// </summary>
 	/// <param name="Section">Section name in which to read/write Key/Value pairs. Pass a null to read/write only globally, above Section.</param>
 	/// <param name="DefaultValues">The Values to be returned if the specified entry is not found.</param>
@@ -467,6 +467,18 @@ public sealed class IniFile
 	{
 		get => ReadKeysValues(Section, DefaultValues);
 		set => WriteKeysValues(Section, value);
+	}
+
+	/// <summary>
+	/// Reads or writes a Key's Value, optionally matches to a specified Section.
+	/// </summary>
+	/// <param name="Section">Section name in which to read/write the Value. Pass a null to read/write only globally, above Section.</param>
+	/// <param name="DefaultValue">The Value to be returned if the specified entry is not found.</param>
+	/// <returns>Values for the specified search.</returns>
+	public string this[string? Section, string Key, string DefaultValue] //░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+	{
+		get => ReadValue(Section, Key, DefaultValue);
+		set => WriteKeyValue(Section, Key, value);
 	}
 
 	#endregion
