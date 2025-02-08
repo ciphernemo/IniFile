@@ -26,11 +26,11 @@ public sealed class IniFile
 	/*
 		IniFile-Mini
 
-		Version:		2.1
+		Version:		2.2
 		Author:			cipher_nemo
 		License:		MIT License
 		Creation Date:	08/28/2024
-		Updated:		02/06/2025
+		Updated:		02/08/2025
 		Version History:
 			1.0: Fork from IniFile with 2024 Builds: 08/28, 08/31, 10/22, 11/07, 11/08, 12/22
 			1.1: 01/29/2025: minor regex pattern change, GetKeysValues(), and customization & formatting to match PortalTime
@@ -41,6 +41,8 @@ public sealed class IniFile
 				duplicate keys, and padding key/value delimiters. All options moved into a single class instead of handling them individually in 
 				functions. I refactored all code, moved repeated code into two classes, and dropped serialization/deserialization.
 			2.1: 02/06/2025: Corrected bug with DuplicateExists skipping renamed duplicates, allowed passing null for options in constructor
+			2.2: 02/08/2025: Additional indexer for individual values
+   
 
 		Original code for IniFile Copyright ©2024 Pavel Bashkardin, available at:
 		https://github.com/ng256/IniFile
