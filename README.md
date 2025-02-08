@@ -86,7 +86,7 @@ opt.AllowDuplicateKeys = false;
 IniFile ini = IniFile.Load("C:\\config.ini", opt);
 ```
 
-Open an INI file. Then read it and write back to it while replacing empty values with default ones, all on the same line. Finally save it back to the same file:
+Open an INI file. Then read it and write back to it while replacing empty values with default ones, all on the same line using an indexer. Finally save it back to the same file:
 ```csharp
 using Ini;
 
